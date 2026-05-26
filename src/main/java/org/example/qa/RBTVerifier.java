@@ -50,3 +50,29 @@ public class RBTVerifier {
             Object direita  = campoDireita.get(noObj);
             boolean cor     = (boolean) campoCor.get(noObj);
 }
+
+
+        // Propriedade 2: nó vermelho não pode ter filho vermelho
+        if (cor == VERMELHO) {
+            if (esquerda != null) {
+                var corEsq = esquerda.getClass().getDeclaredField("cor");
+                corEsq.setAccessible(true);
+                if ((boolean) corEsq.get(esquerda) == VERMELHO) {
+                    System.out.println("ERRO RBT: Dois nós vermelhos consecutivos!");
+                    return -1;
+                }
+            }
+            if (direita != null) {
+                var corDir = direita.getClass().getDeclaredField("cor");
+                corDir.setAccessible(true);
+                if ((boolean) corDir.get(direita) == VERMELHO) {
+                    System.out.println("ERRO RBT: Dois nós vermelhos consecutivos!");
+                    return -1;
+                }
+            }
+        }
+
+        int altEsq = verificarPropriedades(esquerda);
+        int altDir = verificarPropriedades(direita);
+
+        if (altEsq == -1 || altDir == -1) return -1;
