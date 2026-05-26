@@ -44,5 +44,10 @@ public class Main {
         avl.deletar(30);
         System.out.println("AVL após deletar 30 → altura: " + avl.getAltura());
         System.out.println("Busca por 30 na AVL: " + avl.buscar(30));
+
+        System.out.println("\n===== DELETANDO prioridade 30 na RBT =====");
+        rbt.deletar(30);
+        System.out.println("RBT após deletar 30 → altura: " + rbt.getAltura());
+        System.out.println("Busca por 30 na RBT: " + rbt.buscar(30));
     }
 }
