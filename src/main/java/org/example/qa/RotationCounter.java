@@ -20,4 +20,22 @@ public class RotationCounter {
     public int getTotalRotacoesRBT() {
         return totalRotacoesRBT;
     }
+public void resetar() {
+    totalRotacoesAVL = 0;
+    totalRotacoesRBT = 0;
+}
+
+public void exibirResumo() {
+    System.out.println("=== Resumo de Rotações ===");
+    System.out.println("AVL  - Total de rotações: " + totalRotacoesAVL);
+    System.out.println("RBT  - Total de rotações: " + totalRotacoesRBT);
+
+    if (totalRotacoesAVL > totalRotacoesRBT) {
+        System.out.println("Resultado: RBT realizou MENOS rotações.");
+    } else if (totalRotacoesRBT > totalRotacoesAVL) {
+        System.out.println("Resultado: AVL realizou MENOS rotações.");
+    } else {
+        System.out.println("Resultado: Ambas realizaram o mesmo número de rotações.");
+    }
+}
 }
