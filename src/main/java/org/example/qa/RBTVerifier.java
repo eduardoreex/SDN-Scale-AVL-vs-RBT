@@ -49,30 +49,43 @@ public class RBTVerifier {
             Object esquerda = campoEsquerda.get(noObj);
             Object direita  = campoDireita.get(noObj);
             boolean cor     = (boolean) campoCor.get(noObj);
-}
 
-
-        // Propriedade 2: nó vermelho não pode ter filho vermelho
-        if (cor == VERMELHO) {
-            if (esquerda != null) {
-                var corEsq = esquerda.getClass().getDeclaredField("cor");
-                corEsq.setAccessible(true);
-                if ((boolean) corEsq.get(esquerda) == VERMELHO) {
-                    System.out.println("ERRO RBT: Dois nós vermelhos consecutivos!");
-                    return -1;
+            // Propriedade 2: nó vermelho não pode ter filho vermelho
+            if (cor == VERMELHO) {
+                if (esquerda != null) {
+                    var corEsq = esquerda.getClass().getDeclaredField("cor");
+                    corEsq.setAccessible(true);
+                    if ((boolean) corEsq.get(esquerda) == VERMELHO) {
+                        System.out.println("ERRO RBT: Dois nós vermelhos consecutivos!");
+                        return -1;
+                    }
+                }
+                if (direita != null) {
+                    var corDir = direita.getClass().getDeclaredField("cor");
+                    corDir.setAccessible(true);
+                    if ((boolean) corDir.get(direita) == VERMELHO) {
+                        System.out.println("ERRO RBT: Dois nós vermelhos consecutivos!");
+                        return -1;
+                    }
                 }
             }
-            if (direita != null) {
-                var corDir = direita.getClass().getDeclaredField("cor");
-                corDir.setAccessible(true);
-                if ((boolean) corDir.get(direita) == VERMELHO) {
-                    System.out.println("ERRO RBT: Dois nós vermelhos consecutivos!");
-                    return -1;
-                }
+
+            int altEsq = verificarPropriedades(esquerda);
+            int altDir = verificarPropriedades(direita);
+
+            if (altEsq == -1 || altDir == -1) return -1;
+
+            // Propriedade 3: altura negra deve ser igual nos dois lados
+            if (altEsq != altDir) {
+                System.out.println("ERRO RBT: Altura negra diferente! Esq=" + altEsq + " Dir=" + altDir);
+                return -1;
             }
+
+            return cor == PRETO ? altEsq + 1 : altEsq;
+
+        } catch (Exception e) {
+            System.out.println("Erro ao verificar nó RBT: " + e.getMessage());
+            return -1;
         }
-
-        int altEsq = verificarPropriedades(esquerda);
-        int altDir = verificarPropriedades(direita);
-
-        if (altEsq == -1 || altDir == -1) return -1;
+    }
+}
