@@ -1,0 +1,18 @@
+SDN-Scale: AVL vs Red-Black Tree — Stress Test
+Seed: 42 | Delecao: 20%
+Tempos em nanossegundos (ns)
+
+Volume   | AVL-Insert     AVL-Search     AVL-Delete     AVL-Rot  AVL-H | RBT-Insert     RBT-Search     RBT-Delete     RBT-Rot  RBT-H
+------------------------------------------------------------------------------------------------------------------------------------
+1000     | 3060100        642900         181200         1088     10    | 2597600        540400         241200         1083     16
+5000     | 695500         638800         225600         5485     13    | 942000         696000         887200         5478     21
+10000    | 1368200        1625700        320700         10984    14    | 1634300        1471200        355300         10976    23
+50000    | 8047100        4519400        1114800        54981    16    | 9371000        4371200        667100         54970    28
+100000   | 8743300        7846000        3594700        109980   17    | 14163400       8045900        2913600        109968   30
+
+Observacoes:
+- AVL altura final (100k): 17 | RBT altura final (100k): 30
+- Rotacoes totais quase identicas: AVL 109980 vs RBT 109968
+- AVL mais rapida na insercao em volumes grandes
+- RBT mais rapida na delecao em volumes grandes
+- Busca similar nas duas estruturas (ambas O log n)
