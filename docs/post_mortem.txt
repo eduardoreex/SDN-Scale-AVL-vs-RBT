@@ -1,0 +1,93 @@
+
+RELATÓRIO POST-MORTEM
+SDN-Scale: AVL vs Red-Black Tree
+Equipe: Integrante 1 (Lead Engineer), Integrante 2 (DevOps/SRE), Integrante 3 (QA/Analytics)
+Disciplina: Estrutura de Dados II | Professor: Ricardo Sekeff
+
+═══════════════════════════════════════════════════════════
+1. CONTEXTO DO PROBLEMA
+═══════════════════════════════════════════════════════════
+
+O sistema de Load Balancer apresentava latência excessiva ao inserir novas regras de
+firewall de forma sequencial. A causa raiz foi identificada: a estrutura de dados
+utilizada não garantia balanceamento automático, degenerando para O(n) em cenários
+de inserção ordenada.
+
+A diretoria solicitou uma análise comparativa entre duas estruturas candidatas —
+AVL e Red-Black Tree — para decidir qual delas seria adotada em produção.
+
+═══════════════════════════════════════════════════════════
+2. O QUE FOI FEITO
+═══════════════════════════════════════════════════════════
+
+A equipe implementou ambas as estruturas em Java, gerenciando objetos PacketRule
+(ID, IP Origem/Destino, Prioridade). Foram executados testes de carga com 100.000
+regras inseridas em ordem crescente — o pior caso possível para qualquer árvore de
+busca — utilizando a mesma semente de dados (seed 42) para garantir comparação justa.
+
+Métricas coletadas em nanossegundos (ns):
+- Tempo de inserção
+- Tempo de busca
+- Tempo de deleção (simulando expiração de 20% das regras)
+- Total de rotações realizadas
+- Altura final da árvore
+
+═══════════════════════════════════════════════════════════
+3. RESULTADOS OBTIDOS
+═══════════════════════════════════════════════════════════
+
+Volume: 100.000 regras | Deleção: 20.000 regras
+
+Operação        | AVL            | Red-Black      | Vencedor
+----------------|----------------|----------------|----------
+Inserção        | 8.743.300 ns   | 14.163.400 ns  | AVL
+Busca           | 7.846.000 ns   | 8.045.900 ns   | AVL
+Deleção         | 3.594.700 ns   | 2.913.600 ns   | Red-Black
+Rotações totais | 109.980        | 109.968        | Empate
+Altura final    | 17             | 30             | AVL
+
+Integridade estrutural após deleção dos 20%:
+- AVL: APROVADA — |FB| ≤ 1 mantido em todos os nós
+- RBT: APROVADA — 5 propriedades de coloração preservadas
+
+═══════════════════════════════════════════════════════════
+4. ANÁLISE EXECUTIVA
+═══════════════════════════════════════════════════════════
+
+Em linguagem de negócio:
+
+→ A AVL respondeu consultas 2,4% mais rápido que a Red-Black.
+→ A AVL inseriu novas regras 38% mais rápido que a Red-Black.
+→ A Red-Black removeu regras expiradas 19% mais rápido que a AVL.
+→ Ambas realizaram praticamente o mesmo número de reorganizações internas.
+→ Nenhuma das duas apresentou falha estrutural após a limpeza de 20% das regras.
+
+O ponto crítico do sistema é a INSERÇÃO — novas regras de firewall são adicionadas
+constantemente em um Load Balancer. Como a AVL foi 38% mais rápida nessa operação
+e também mais eficiente na busca, ela se mostra a escolha mais adequada para o
+perfil read-intensive e insert-intensive do sistema.
+
+═══════════════════════════════════════════════════════════
+5. DECISÃO TÉCNICA
+═══════════════════════════════════════════════════════════
+
+ESTRUTURA ESCOLHIDA: AVL Tree
+
+Justificativa: O sistema SDN opera com alto volume de inserções ordenadas e buscas
+frequentes por prioridade. A AVL, por ser estritamente balanceada (altura máxima 17
+contra 30 da Red-Black em 100k regras), garante menor latência de busca e inserção.
+A Red-Black seria preferível apenas se o sistema fosse predominantemente focado em
+remoções, o que não é o caso do Load Balancer analisado.
+
+═══════════════════════════════════════════════════════════
+6. LIÇÕES APRENDIDAS
+═══════════════════════════════════════════════════════════
+
+- Não existe estrutura universalmente superior: a escolha depende do perfil de uso.
+- O code review evitou bugs de ponteiro que só apareceriam em produção.
+- Medir em nanossegundos revelou diferenças que milissegundos esconderiam.
+- A deleção é a operação mais complexa e deve ser testada obrigatoriamente.
+
+═══════════════════════════════════════════════════════════
+Assinado pela equipe de engenharia — SDN-Scale Project
+═══════════════════════════════════════════════════════════
